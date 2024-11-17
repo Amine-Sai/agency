@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext", // Specifies the ECMAScript target version
+    "module": "ESNext", // Specifies the module code generation method
+    "moduleResolution": "node", // Resolves modules like Node.js
+    "outDir": "./dist", // Output directory for compiled JavaScript
+    "rootDir": "./", // Root directory for TypeScript files
+    "strict": true, // Enable all strict type-checking options
+    "esModuleInterop": true, // Allow default imports from CommonJS modules
+    "forceConsistentCasingInFileNames": true, // Ensure consistent file naming
+    "skipLibCheck": true // Skip type-checking of declaration files
+  },
+  "include": ["./"], // Files or directories to include
+  "exclude": ["node_modules", "dist"] // Files or directories to exclude
+}
