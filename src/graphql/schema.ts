@@ -1,8 +1,9 @@
 const typeDefs = `
+scalar Date
 
   type User {
 
-    _id: ID!
+    _id: Int!
 
     username: String!
 
@@ -19,7 +20,7 @@ const typeDefs = `
 
   type Service {
 
-    _id: ID!
+    _id: Int!
 
     title: String!
 
@@ -32,7 +33,7 @@ const typeDefs = `
 
   type Employee {
 
-    _id: ID!
+    _id: Int!
 
     username: String!
 
@@ -49,7 +50,7 @@ const typeDefs = `
 
   type Request {
 
-    _id: ID!
+    _id: Int!
 
     service: Service!
 
@@ -57,33 +58,22 @@ const typeDefs = `
 
     body: String!
 
-    status: RequestStatus!
+    status: String!
 
     date: Date!
 
   }
 
 
-  enum RequestStatus {
-
-    "Pending"
-
-    "Done"
-
-    "Rejected"
-
-  }
-
-
   type Query {
 
-    userFetch(_id: ID!): User!
+    userFetch(_id: Int!): User!
 
-    servicesFetch(_id: ID!): [Service!]
+    servicesFetch(_id: Int!): [Service!]
 
-    employeeFetch(_id: ID!): [Employee!]
+    employeeFetch(_id: Int!): [Employee!]
 
-    requestsFetch(service_id: Number): [Request!]
+    requestsFetch(service_id: Int!): [Request!]
 
   }
 
@@ -97,12 +87,11 @@ const typeDefs = `
     createService(title: String!, team: [Employee!], description: String!, employees: [Employee!]!): Service!
 
     createEmployee(username: String!, email: String!, password: String!): Employee!
-    assignEmployee(username:String!, service: ID!): String
+    assignEmployee(username:String!, service: Int!): String
 
-    createRequest(service: Service!, client: User!, status: RequestStatus!): Request!
-    updateRequestStatus(service: Service!, client: User!, newStatus: RequestStatus!): Request!
+    createRequest(service: Service!, client: User!, status: String!): Request!
+    updateRequestStatus(service: Service!, client: User!, newStatus: String!): Request!
 
   }
 `;
-
 export default typeDefs;

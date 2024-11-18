@@ -17,10 +17,8 @@ const resolver = {
           },
         });
         return user;
-      } catch (error) {
-        throw new error(
-          "something happened while creating your account, try again later."
-        );
+      } catch (error:any) {
+        throw error ("something happened while creating your account, try again later." );
       }
     },
 
@@ -31,13 +29,13 @@ const resolver = {
           where: { email },
           // select: { email: true, id: true, requests: true },
         });
-        if (!user) throw new error("Invalid credentials.");
+        if (!user) throw error("Invalid credentials.");
         const compare: boolean = await verifypass(password, user?.password);
-        if (!compare) throw new error("Invalid credentials.");
+        if (!compare) throw error("Invalid credentials.");
         return user;
-      } catch (error) {
+      } catch (error:any) {
         console.log(error);
-        throw new error(
+        throw error(
           "something happened while creating your account, try again later."
         );
       }
@@ -59,11 +57,11 @@ const resolver = {
             password,
           },
         });
-        if (!user) throw new error("User not found.");
+        if (!user) throw error("User not found.");
         return user;
-      } catch (error) {
+      } catch (error:any ) {
         console.log(error);
-        throw new error(
+        throw error(
           "something happened while creating your account, try again later."
         );
       }

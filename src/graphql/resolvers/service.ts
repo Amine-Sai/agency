@@ -76,7 +76,7 @@ const resolver = {
     ) => {
       try {
         if (!updates)
-          throw new error("No updates provided, please make some changes-");
+          throw error("No updates provided, please make some changes-");
         const update = await prisma.service.update({
           where: {
             id: service_id,
