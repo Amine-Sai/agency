@@ -11,8 +11,8 @@ const resolvers = {
     ...userResolvers.Query,
   },
   Mutation: {
-    // ...userResolvers.Mutation,
-    // ...employeeResolvers.Mutation,
+    ...userResolvers.Mutation,
+    ...employeeResolvers.Mutation,
     ...requestResolvers.Mutation,
     ...serviceResolvers.Mutation,
   },

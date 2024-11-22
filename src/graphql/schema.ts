@@ -1,97 +1,87 @@
-const typeDefs = `
-scalar Date
+import { gql } from "apollo-server";
+
+const typeDefs = gql`
+  scalar Date
 
   type User {
-
-    _id: Int!
-
+    id: Int!
     username: String!
-
     email: String!
-
     password: String!
-
     requests: [Request!]
-
     joinDate: Date
-
   }
-
-
-  type Service {
-
-    _id: Int!
-
-    title: String!
-
-    team: [Employee!]
-
-    description: String!
-
-  }
-
 
   type Employee {
-
-    _id: Int!
-
+    id: Int!
     username: String!
-
     email: String!
-
     password: String!
-
     services: [Service!]
-
-    joinDate: Date!
-
+    joinDate: Date
   }
 
+  type Service {
+    id: Int!
+    title: String!
+    price: Float!
+    team: [Employee!]
+    description: String
+  }
 
   type Request {
-
-    _id: Int!
-
+    id: Int!
     service: Service!
-
-    client: User!
-
+    user: User!
     body: String!
-
     status: String!
-
-    date: Date!
-
+    date: String
   }
-
 
   type Query {
-
-    userFetch(_id: Int!): User!
-
-    servicesFetch(_id: Int!): [Service!]
-
-    employeeFetch(_id: Int!): [Employee!]
-
-    requestsFetch(service_id: Int!): [Request!]
-
+    userFetch(userID: Int!, username: String!): User
+    employeeFetch(employeeID: Int!, username: String!): Employee
+    #
+    serviceFetch(serviceID: Int!): Service
+    servicesFetch(title: String!): [Service!]
+    #
+    requestFetch(requestID: Int!): [Request!]
+    requestsFetch(userID: String): [Request!]
   }
 
-
   type Mutation {
+    createEmployee(
+      username: String!
+      email: String!
+      password: String!
+    ): Employee!
+    updateEmployee(
+      employeeID: Int!
+      username: String!
+      email: String!
+      password: String!
+    ): Employee!
 
     createUser(username: String!, email: String!, password: String!): User!
     updateUser(username: String!, email: String!, password: String!): User!
+    userLogin(email: String!, password: String!): User!
 
+    createService(
+      title: String!
+      price: Float!
+      team: [Int!]
+      description: String
+    ): Service!
 
-    createService(title: String!, team: [Employee!], description: String!, employees: [Employee!]!): Service!
+    updateService(
+      title: String!
+      employeeID: [Int!]
+      description: String
+      price: Float!
+    ): Service!
 
-    createEmployee(username: String!, email: String!, password: String!): Employee!
-    assignEmployee(username:String!, service: Int!): String
-
-    createRequest(service: Service!, client: User!, status: String!): Request!
-    updateRequestStatus(service: Service!, client: User!, newStatus: String!): Request!
-
+    createRequest(serviceID: Int!, userID: Int!): Request
+    updateRequestStatus(requestID: Int!, newStatus: String!): Request
   }
 `;
 export default typeDefs;
