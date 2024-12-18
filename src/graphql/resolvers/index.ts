@@ -16,6 +16,10 @@ const resolvers = {
     ...requestResolvers.Mutation,
     ...serviceResolvers.Mutation,
   },
+  Employee: employeeResolvers.Employee,
+  Request: requestResolvers.Request,
+  // Service: serviceResolvers.Service,
+  // User: userResolvers.User,
 };
 
 export default resolvers;

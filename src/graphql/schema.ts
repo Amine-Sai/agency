@@ -31,25 +31,26 @@ const typeDefs = gql`
 
   type Request {
     id: Int!
-    service: Service!
-    user: User!
-    body: String!
+    service: Service
+    user: User
+    body: String
     status: String!
-    date: String
+    date: Date
   }
 
   type Query {
-    userFetch(userID: Int!, username: String!): User
-    employeeFetch(employeeID: Int!, username: String!): Employee
+    userFetch(userID: Int, username: String): User
+    employeeFetch(employeeID: Int, username: String): Employee
     #
     serviceFetch(serviceID: Int!): Service
-    servicesFetch(title: String!): [Service!]
+    servicesFetch(title: String): [Service!]
     #
-    requestFetch(requestID: Int!): [Request!]
-    requestsFetch(userID: String): [Request!]
+    requestFetch(requestID: Int!): Request
+    requestsFetch(userID: Int): [Request!]
   }
 
   type Mutation {
+    #employee
     createEmployee(
       username: String!
       email: String!
@@ -57,15 +58,22 @@ const typeDefs = gql`
     ): Employee!
     updateEmployee(
       employeeID: Int!
-      username: String!
-      email: String!
-      password: String!
-    ): Employee!
+      username: String
+      email: String
+      password: String
+    ): Employee
 
+    #user
     createUser(username: String!, email: String!, password: String!): User!
-    updateUser(username: String!, email: String!, password: String!): User!
+    updateUser(
+      userID: Int!
+      username: String
+      email: String
+      password: String
+    ): User
     userLogin(email: String!, password: String!): User!
 
+    # service
     createService(
       title: String!
       price: Float!
@@ -74,14 +82,16 @@ const typeDefs = gql`
     ): Service!
 
     updateService(
-      title: String!
+      serviceID: Int!
+      title: String
       employeeID: [Int!]
       description: String
-      price: Float!
-    ): Service!
+      price: Float
+    ): Service
 
-    createRequest(serviceID: Int!, userID: Int!): Request
-    updateRequestStatus(requestID: Int!, newStatus: String!): Request
+    # request
+    createRequest(serviceID: Int!, userID: Int!, body: String): Request!
+    updateRequestStatus(requestID: Int!, newStatus: String!): Request!
   }
 `;
 export default typeDefs;

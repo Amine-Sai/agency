@@ -40,7 +40,7 @@ model Request {
   serviceID Int
   user    User   @relation(fields: [userID], references: [id], onDelete: Cascade)
   userID  Int
-  body String 
+  body    String?
   status    String
   date      DateTime @default(now())
 }

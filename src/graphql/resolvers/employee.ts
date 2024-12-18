@@ -5,18 +5,27 @@ const prisma = new PrismaClient();
 const resolver = {
   Query: {
     // employeeFetch(args: employeeInput!): Employee!
-    employeeFetch: async ({
-      username,
-      employeeID,
-    }: {
-      username: string;
-      employeeID: number;
-    }) => {
+    employeeFetch: async (
+      _: unknown,
+      {
+        username,
+        employeeID,
+      }: {
+        username?: string;
+        employeeID?: number;
+      }
+    ) => {
       try {
         if (employeeID) {
           const employee = await prisma.employee.findUnique({
             where: { id: employeeID },
+            select: {
+              password: false,
+            },
+            // include: { services: true },
           });
+          console.log(employee);
+
           return employee;
         } else if (username) {
           const employee = await prisma.employee.findUnique({
@@ -33,9 +42,12 @@ const resolver = {
   Mutation: {
     // createEmployee(username: String!, email: String!, password: String!): Employee!
     createEmployee: async (
-      username: string,
-      email: string,
-      password: string
+      _: unknown,
+      {
+        username,
+        email,
+        password,
+      }: { username: string; email: string; password: string }
     ) => {
       try {
         const hashedpass = await hashpassword(password);
@@ -57,10 +69,18 @@ const resolver = {
     },
     // updateEmployee(username: String!, email: String!, password: String!): Employee!
     updateEmployee: async (
-      employeeID: number,
-      username?: string,
-      email?: string,
-      password?: string
+      _: unknown,
+      {
+        employeeID,
+        username,
+        email,
+        password,
+      }: {
+        employeeID: number;
+        username?: string;
+        email?: string;
+        password?: string;
+      }
     ) => {
       try {
         if (password) {
@@ -84,5 +104,37 @@ const resolver = {
       }
     },
   },
+  Employee: {
+    services: async (
+      parent: { id: number; services: number[] },
+      _: unknown,
+      context: { prisma: PrismaClient }
+    ) => {
+      console.log("Fetching services for employee:", parent.id);
+
+      // Fetch services using the IDs from the employee.services array
+      const services = await Promise.all(
+        parent.services.map((serviceId) =>
+          context.prisma.service.findUnique({ where: { id: serviceId } })
+        )
+      );
+
+      // Filter out any null results in case some service IDs do not exist
+      const validServices = services.filter((service) => service !== null);
+
+      console.log("Services for employee:", validServices);
+
+      return validServices;
+    },
+  },
 };
+
+// type Employee {
+//   id: Int!
+//   username: String!
+//   email: String!
+//   password: String!
+//   services: [Service!]
+//   joinDate: Date
+// }
 export default resolver;

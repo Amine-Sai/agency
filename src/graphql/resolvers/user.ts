@@ -113,6 +113,7 @@ const resolver = {
         const data: { username?: string; email?: string; password?: string } = {
           username,
           email,
+          password,
         };
 
         if (password) {

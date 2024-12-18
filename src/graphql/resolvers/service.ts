@@ -4,12 +4,14 @@ const prisma = new PrismaClient();
 const resolver = {
   Query: {
     // serviceFetch(serviceID: Int!): Service
-    serviceFetch: async (_: unknown, { id }: { id: number }) => {
+    serviceFetch: async (_: unknown, { serviceID }: { serviceID: number }) => {
       try {
+        if (!serviceID) throw new Error("Invalid request");
         const service = await prisma.service.findUnique({
           where: {
-            id,
+            id: serviceID,
           },
+          include: { team: true },
         });
         if (!service) {
           throw new Error(`Service not found.`);
@@ -74,11 +76,16 @@ const resolver = {
     updateService: async (
       _: unknown,
       {
-        id,
+        serviceID,
         title,
         description,
         team,
-      }: { id: number; title?: string; description?: string; team?: number[] }
+      }: {
+        serviceID: number;
+        title?: string;
+        description?: string;
+        team?: number[];
+      }
     ) => {
       try {
         if (!title && !description && !team) {
@@ -88,7 +95,7 @@ const resolver = {
         }
 
         const updatedService = await prisma.service.update({
-          where: { id },
+          where: { id: serviceID },
           data: {
             title,
             description,
@@ -104,8 +111,8 @@ const resolver = {
     },
   },
   Service: {
-    team: (parent: { id: number }, _: unknown, context: any) => {
-      return context.prisma.service
+    team: async (parent: { id: number }, _: unknown, context: any) => {
+      return await context.prisma.service
         .findUnique({ where: { id: parent.id } })
         .team();
     },
