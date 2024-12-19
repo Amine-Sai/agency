@@ -1,28 +1,42 @@
-import { ApolloServer } from "apollo-server";
+import express from "express";
+import rateLimit from "express-rate-limit";
+import { ApolloServer } from "apollo-server-express";
 import typeDefs from "./graphql/schema";
 import resolvers from "./graphql/resolvers/index";
 import { PrismaClient } from "@prisma/client";
+import { PubSub } from "graphql-subscriptions";
+// import { authMiddleware } from "./middleware/authMiddleware";
+
 const prisma = new PrismaClient();
+const pubsub = new PubSub();
+const app = express();
+
+/* // Set up rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
+});
+
+// Apply the rate limiting middleware to all requests
+app.use(limiter); */
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  formatError: (err) => {
+  context: ({ req }) => {
+    // const auth = authMiddleware({ req });
     return {
-      message: err.message,
-      code: err.extensions.code || "INTERNAL_SERVER_ERROR",
-      context: ({ req }: { req: any }) => {
-        return {
-          prisma, // Attach the Prisma client to the context
-          user: req.user, // Example: Add authenticated user from the request, if applicable
-        };
-      },
-      details: err.extensions.details || null,
+      prisma, // Attach the Prisma client to the context
+      pubsub,
+      // userID: auth.userID,
     };
   },
 });
 
+// server.applyMiddleware({ app });
+
 const PORT = 4000;
-server.listen(PORT).then(({ url }) => {
-  console.log(`Server ready at ${url}`);
+app.listen(PORT, () => {
+  console.log(`Server ready at http://localhost:${PORT}${server.graphqlPath}`);
 });

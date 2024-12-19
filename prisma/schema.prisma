@@ -22,6 +22,7 @@ model User {
   email     String   @unique
   password  String
   requests  Request[]
+  messages  Message[] @ignore 
   joinDate  DateTime @default(now())
 }
 
@@ -43,4 +44,22 @@ model Request {
   body    String?
   status    String
   date      DateTime @default(now())
+}
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  requestID Int @unique
+  messages  Message[] 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  chat Chat @relation(fields: [chatID], references: [id], onDelete: Cascade)
+  chatID    Int @unique
+  user User @relation(fields: [userID], references: [id], onDelete: Cascade)
+  userID    Int @unique
+  content   String
+  createdAt DateTime @default(now())
 }

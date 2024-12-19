@@ -137,10 +137,19 @@ const resolver = {
     },
   },
   User: {
-    requsts: (parent: { id: number }, _: unknown, context: any) => {
-      return context.prisma.user
-        .findUnique({ where: { id: parent.id } })
-        .requests();
+    requests: async (parent: any, _: unknown, context: any) => {
+      try {
+        if (!parent) throw new Error("Error occured.");
+        const requests = await context.prisma.request.findMany({
+          where: {
+            userID: parent.id,
+          },
+        });
+        return requests;
+      } catch (error) {
+        console.error("Error fetching requests:", error);
+        throw new Error("Failed to fetch requests.");
+      }
     },
   },
 };

@@ -61,6 +61,15 @@ const resolver = {
   },
 
   Mutation: {
+    deleteAllRequests: async () => {
+      try {
+        await prisma.request.deleteMany({ where: {} });
+        return "done";
+      } catch (error) {
+        throw new Error("");
+      }
+    },
+
     // createRequest(serviceID: Int!, userID: Int!): Request!
     createRequest: async (
       _: unknown,
@@ -71,6 +80,7 @@ const resolver = {
       }: { serviceID: number; userID: number; body?: string }
     ) => {
       try {
+        if (!serviceID || !userID) throw new Error("Invalid params");
         const existingRequest = await prisma.request.findFirst({
           where: {
             userID: userID,
@@ -78,7 +88,6 @@ const resolver = {
             // status: "pending",
           },
         });
-        console.log("prev", existingRequest);
 
         if (!existingRequest) {
           const newRequest = await prisma.request.create({
@@ -90,8 +99,16 @@ const resolver = {
               date: new Date(),
             },
           });
-          console.log(newRequest);
-
+          if (!newRequest) throw new Error("Error occured, please try again.");
+          const newChat = await prisma.chat.create({
+            data: {
+              requestID: newRequest.id,
+            },
+          });
+          if (!newChat)
+            throw new Error(
+              "Error while creating chat, contact our email in cases of any issues"
+            );
           return newRequest;
         } else {
           throw new Error(
@@ -104,14 +121,18 @@ const resolver = {
     },
 
     // updateRequest(service: Service!, client: Client!, status: RequestStatus!): Request!
-    updateRequestStatus: async (requestID: number, status: string) => {
+    updateRequestStatus: async (
+      _: unknown,
+      { requestID, newStatus }: { requestID: number; newStatus: string }
+    ) => {
       try {
-        const update = await prisma.request.update({
+        if (!requestID || !newStatus) throw new Error("Invalid input");
+        let update = await prisma.request.update({
           where: {
             id: requestID,
           },
           data: {
-            status: status,
+            status: newStatus,
           },
         });
 
@@ -119,10 +140,11 @@ const resolver = {
           throw new Error(
             "Request already exists with a pending or rejected status."
           );
+        console.log(update);
+
+        return update;
       } catch (error) {
-        throw new Error(
-          "Request already exists with a pending or rejected status."
-        );
+        throw new Error("Internal error.");
       }
     },
   },
@@ -130,10 +152,12 @@ const resolver = {
   Request: {
     service: async (request: any) => {
       try {
-        console.log("Request object:", request);
+        console.log(request);
+
+        if (!request) throw new Error("Error occured");
         const service = await prisma.service.findUnique({
           where: {
-            id: request.serviceID, // Assuming you have a serviceId field in your Request model
+            id: request.serviceID,
           },
         });
         if (!service) {
@@ -146,15 +170,15 @@ const resolver = {
       }
     },
 
-    user: async (parent: { userID: number }) => {
+    user: async (parent: any) => {
       try {
-        if (!parent.userID) {
-          throw new Error("Service ID is missing in the request");
+        if (!parent || !parent.userID) {
+          throw new Error("Error occured");
         }
         const user = await prisma.user.findUnique({
           where: { id: parent.userID },
-          select: { password: false },
         });
+
         return user;
       } catch (error) {
         console.log(error);

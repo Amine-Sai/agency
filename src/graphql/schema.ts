@@ -38,6 +38,28 @@ const typeDefs = gql`
     date: Date
   }
 
+  type Chat {
+    id: Int!
+    messages: [Message!]
+    request: Request!
+    createdAt: Date
+    updatedAt: Date
+  }
+
+  type Message {
+    id: Int!
+    chat: Chat!
+    user: User!
+    content: String!
+    createdAt: String!
+  }
+
+  ###################
+
+  type Subscription {
+    messageSent(chatID: Int!): Message!
+  }
+
   type Query {
     userFetch(userID: Int, username: String): User
     employeeFetch(employeeID: Int, username: String): Employee
@@ -47,51 +69,33 @@ const typeDefs = gql`
     #
     requestFetch(requestID: Int!): Request
     requestsFetch(userID: Int): [Request!]
+    #
+    getChat(requestID: Int!): Chat
+    getMessage(messageID: Int!): Message
   }
 
   type Mutation {
     #employee
-    createEmployee(
-      username: String!
-      email: String!
-      password: String!
-    ): Employee!
-    updateEmployee(
-      employeeID: Int!
-      username: String
-      email: String
-      password: String
-    ): Employee
+    createEmployee(username: String!, email: String! ,password: String!): Employee!
+    updateEmployee(employeeID: Int!, username: String ,email: String ,password: String): Employee
 
     #user
-    createUser(username: String!, email: String!, password: String!): User!
-    updateUser(
-      userID: Int!
-      username: String
-      email: String
-      password: String
-    ): User
-    userLogin(email: String!, password: String!): User!
+    createUser(username: String!, email: String!, password: String!): User
+    updateUser(userID: Int!,username: String,email: String,password: String): User
+    userLogin(email: String!, password: String!): User
 
     # service
-    createService(
-      title: String!
-      price: Float!
-      team: [Int!]
-      description: String
-    ): Service!
+    createService(title: String!,price: Float!,team: [Int!],,description: String): Service!
 
-    updateService(
-      serviceID: Int!
-      title: String
-      employeeID: [Int!]
-      description: String
-      price: Float
-    ): Service
+    updateService(serviceID: Int!,title: String,employeeID: [Int!],description: String,price: Float): Service
 
     # request
-    createRequest(serviceID: Int!, userID: Int!, body: String): Request!
-    updateRequestStatus(requestID: Int!, newStatus: String!): Request!
+    createRequest(serviceID: Int!, userID: Int!, body: String): Request
+    updateRequestStatus(requestID: Int!, newStatus: String!): Request
+    deleteAllRequests: String
+
+    #chat
+    sendMessage(chatID: Int!, UserID: Int!, content: String!): Message
   }
 `;
 export default typeDefs;
