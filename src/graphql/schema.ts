@@ -42,16 +42,17 @@ const typeDefs = gql`
     id: Int!
     messages: [Message!]
     request: Request!
-    createdAt: Date
-    updatedAt: Date
+    createdAt: Date!
+    updatedAt: Date!
   }
 
   type Message {
     id: Int!
     chat: Chat!
     user: User!
+    role: String!
     content: String!
-    createdAt: String!
+    createdAt: Date!
   }
 
   ###################
@@ -82,7 +83,7 @@ const typeDefs = gql`
     #user
     createUser(username: String!, email: String!, password: String!): User
     updateUser(userID: Int!,username: String,email: String,password: String): User
-    userLogin(email: String!, password: String!): User
+    userLogin(email: String!, password: String!): Boolean
 
     # service
     createService(title: String!,price: Float!,team: [Int!],,description: String): Service!
@@ -95,7 +96,7 @@ const typeDefs = gql`
     deleteAllRequests: String
 
     #chat
-    sendMessage(chatID: Int!, UserID: Int!, content: String!): Message
+    sendMessage(chatID: Int!, userID: Int!, content: String!): Message
   }
 `;
 export default typeDefs;

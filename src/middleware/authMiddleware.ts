@@ -1,20 +1,24 @@
 import { AuthenticationError } from "apollo-server";
 import jwt from "jsonwebtoken";
+
 import * as dotenv from "dotenv";
 dotenv.config();
 
 const SECRET_KEY = process.env.JWT_TOKEN;
 
-export const authMiddleware = (context: any) => {
+export const authMiddleware = (req: any) => {
   try {
-    const token = context.req.headers.token;
+    const token = req.headers.token;
 
     if (!token) {
       throw new AuthenticationError("You must be logged in.");
     }
+    if (!SECRET_KEY) {
+      throw new Error("Secret key is not defined.");
+    }
 
-    const userID = jwt.verify(token, SECRET_KEY);
-    return { userID };
+    const user = jwt.verify(token, SECRET_KEY);
+    return user;
   } catch (err) {
     throw new AuthenticationError("Invalid token.");
   }

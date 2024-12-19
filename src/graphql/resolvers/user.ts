@@ -1,15 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-import { hashpassword, verifypass } from "./common";
+import * as jwt from "jsonwebtoken";
 
-interface UserFetchArgs {
-  userID?: number;
-  username?: string;
-}
+import { hashpassword, verifypass } from "./common";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const resolver = {
   Query: {
-    userFetch: async (_: unknown, { userID, username }: UserFetchArgs) => {
+    userFetch: async (
+      _: unknown,
+      { userID, username }: { userID: number; username: string }
+    ) => {
       try {
         if (!userID && !username) {
           throw new Error("You must provide either a userID or a username.");
@@ -74,7 +76,8 @@ const resolver = {
     //userLogin(email:String!, password: String!): User!
     userLogin: async (
       _: unknown,
-      { email, password }: { email: string; password: string }
+      { email, password }: { email: string; password: string },
+      { res }: { res: any }
     ) => {
       try {
         const user = await prisma.user.findUnique({ where: { email } });
@@ -82,8 +85,15 @@ const resolver = {
         if (!user || !(await verifypass(password, user.password))) {
           throw new Error("Invalid credentials.");
         }
-
-        return user;
+        const key = process.env.JWT_SECRET;
+        if (!key) throw new Error("Dotenv file busted");
+        const token = jwt.sign({ userID: user.id, role: user.role }, key);
+        res.cookie("authToken", token, {
+          httpOnly: true,
+          sameSite: "strict",
+        });
+        
+        return true;
       } catch (error) {
         console.error("Error during login:", error);
         throw new Error("Login failed. Please try again later.");

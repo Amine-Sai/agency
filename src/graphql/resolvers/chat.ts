@@ -35,15 +35,20 @@ const resolver = {
     },
   },
   Mutation: {
+    // maybe add a limit for messages too >.<
+
     sendMessage: async (
       _: unknown,
-      {
-        chatID,
-        userID,
-        content,
-      }: { chatID: number; userID: number; content: string }
+      { chatID, content }: { chatID: number; userID: number; content: string },
+      { user }: { user: any }
     ) => {
       try {
+        const { userID, role } = user;
+
+        if (!userID || !role) throw new Error("Invalid request.");
+
+        if (!chatID) throw new Error("Invalid request.");
+
         if (!content || content.length > 256)
           throw new Error("Invalid message.");
 
@@ -54,13 +59,15 @@ const resolver = {
           where: { id: chat.requestID },
           select: { status: true },
         });
+
         if (!request || request.status != "pending")
-          throw new Error("Chat closed.");
+          throw new Error("Chat Unavailable");
 
         const message = await prisma.message.create({
           data: {
-            chatID,
+            chatID: chat.id,
             userID,
+            role,
             content,
           },
         });
@@ -121,6 +128,7 @@ const resolver = {
         if (!parent || !parent.userID) {
           throw new Error("Error occured");
         }
+
         const user = await prisma.user.findUnique({
           where: { id: parent.userID },
           select: { id: true },
