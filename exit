@@ -1,5 +1,0 @@
- id | username  |     email      |                           password                           |        joinDate         
-----+-----------+----------------+--------------------------------------------------------------+-------------------------
-  1 | employee1 | test1@mail.net | $2a$11$CulBycVFHrDhPqgyzurY5e7oI6f/RxgXq6AUz.YrGWIHwCIRGwppe | 2024-11-29 10:55:02.236
-(1 row)
-
