@@ -62,14 +62,14 @@ const typeDefs = gql`
   }
 
   type Query {
-    userFetch(userID: Int, username: String): User
+    userFetch: User
     employeeFetch(employeeID: Int, username: String): Employee
     #
     serviceFetch(serviceID: Int!): Service
     servicesFetch(title: String): [Service!]
     #
     requestFetch(requestID: Int!): Request
-    requestsFetch(userID: Int): [Request!]
+    requestsFetch: [Request!]
     #
     getChat(requestID: Int!): Chat
     getMessage(messageID: Int!): Message
@@ -91,7 +91,7 @@ const typeDefs = gql`
     updateService(serviceID: Int!,title: String,employeeID: [Int!],description: String,price: Float): Service
 
     # request
-    createRequest(serviceID: Int!, userID: Int!, body: String): Request
+    createRequest(serviceID: Int!, body: String): Request
     updateRequestStatus(requestID: Int!, newStatus: String!): Request
     deleteAllRequests: String
 

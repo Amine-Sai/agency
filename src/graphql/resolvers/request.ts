@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { cookieVerifier } from "../../middleware/authMiddleware";
 const prisma = new PrismaClient();
 
 /* 
@@ -10,16 +11,14 @@ input requestInput {
 const resolver = {
   Query: {
     // requestsFetch(args: requestInput!): [Request!]
-
     requestsFetch: async (
       _: unknown,
-      {
-        userID,
-      }: {
-        userID?: number;
-      }
+
+      __: unknown,
+      { cookie }: { cookie: any }
     ) => {
       try {
+        const { userID } = cookieVerifier(cookie);
         const requests = await prisma.request.findMany({
           where: {
             userID,
@@ -35,8 +34,13 @@ const resolver = {
     },
 
     // requestFetch(requestID: Int!): Request
-    requestFetch: async (_: unknown, { requestID }: { requestID: number }) => {
+    requestFetch: async (
+      _: unknown,
+      { requestID }: { requestID: number },
+      { cookie }: { cookie: any }
+    ) => {
       try {
+        const { userID } = cookieVerifier(cookie);
         if (!requestID) throw new Error("Invalid request");
         const request = await prisma.request.findUnique({
           where: {
@@ -46,12 +50,7 @@ const resolver = {
         if (!request) {
           throw new Error("Request not found");
         }
-        console.log(request.serviceID);
-        const service = await prisma.service.findUnique({
-          where: { id: request.serviceID },
-        });
-        console.log(service);
-
+        if (request.userID != userID) throw new Error("Unauthorized");
         return request;
       } catch (error) {
         console.log(error);
@@ -61,25 +60,14 @@ const resolver = {
   },
 
   Mutation: {
-    deleteAllRequests: async () => {
-      try {
-        await prisma.request.deleteMany({ where: {} });
-        return "done";
-      } catch (error) {
-        throw new Error("");
-      }
-    },
-
     // createRequest(serviceID: Int!, userID: Int!): Request!
     createRequest: async (
       _: unknown,
-      {
-        serviceID,
-        userID,
-        body,
-      }: { serviceID: number; userID: number; body?: string }
+      { serviceID, body }: { serviceID: number; body?: string },
+      { cookie }: { cookie: any }
     ) => {
       try {
+        const { userID } = cookieVerifier(cookie);
         if (!serviceID || !userID) throw new Error("Invalid params");
         const existingRequest = await prisma.request.findFirst({
           where: {
@@ -186,5 +174,13 @@ const resolver = {
       }
     },
   },
+    chat: async (parent: any) =>{
+      try {
+          if (!parent || !parent.id) throw new Error('Invalid request.')
+          const chat = await prisma.chat.findUnique({where: {id: parent.}})
+      } catch (error) {
+        throw new Error('Internal error')
+      }
+    }
 };
 export default resolver;

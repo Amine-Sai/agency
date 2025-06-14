@@ -41,27 +41,30 @@ model Request {
   id       Int      @id @default(autoincrement())
   service   Service  @relation(fields: [serviceID], references: [id], onDelete: Cascade)
   serviceID Int
-  user    User   @relation(fields: [userID], references: [id], onDelete: Cascade)
-  userID  Int
-  body    String?
+  user      User     @relation(fields: [userID], references: [id], onDelete: Cascade)
+  userID    Int
+  chat      Chat?    @relation
+  body      String?
   status    String
   date      DateTime @default(now())
 }
 
 model Chat {
   id        Int      @id @default(autoincrement())
-  requestID Int @unique
-  messages  Message[] 
+  request   Request  @relation(fields: [requestID], references: [id], onDelete: Cascade)
+  requestID Int      @unique
+  messages  Message[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+
 model Message {
   id        Int      @id @default(autoincrement())
   chat Chat @relation(fields: [chatID], references: [id], onDelete: Cascade)
-  chatID    Int @unique
+  chatID    Int 
   user User @relation(fields: [userID], references: [id], onDelete: Cascade)
-  userID    Int @unique
+  userID    Int 
   content   String
   role String @default("user")
   createdAt DateTime @default(now())

@@ -3,24 +3,19 @@ const prisma = new PrismaClient();
 import * as jwt from "jsonwebtoken";
 
 import { hashpassword, verifypass } from "./common";
+import { cookieVerifier } from "../../middleware/authMiddleware";
 import * as dotenv from "dotenv";
 dotenv.config();
 
 const resolver = {
   Query: {
-    userFetch: async (
-      _: unknown,
-      { userID, username }: { userID: number; username: string }
-    ) => {
+    userFetch: async (_: unknown, __: unknown, { cookie }: { cookie: any }) => {
       try {
-        if (!userID && !username) {
-          throw new Error("You must provide either a userID or a username.");
-        }
+        const { userID } = cookieVerifier(cookie);
 
-        const user = userID
-          ? await prisma.user.findUnique({ where: { id: userID } })
-          : await prisma.user.findUnique({ where: { username } });
-
+        const user = await prisma.user.findUnique({
+          where: { id: userID },
+        });
         if (!user) {
           throw new Error("User not found.");
         }
@@ -40,9 +35,13 @@ const resolver = {
         username,
         email,
         password,
-      }: { username: string; email: string; password: string }
+      }: { username: string; email: string; password: string },
+      { req }: { req: any }
     ) => {
       try {
+        if (req.headers.jwt)
+          throw new Error("You're already logged in, log out to proceed.");
+
         if (!username || !email || !password) {
           throw new Error(
             "All fields (username, email, and password) are required."
@@ -85,14 +84,20 @@ const resolver = {
         if (!user || !(await verifypass(password, user.password))) {
           throw new Error("Invalid credentials.");
         }
-        const key = process.env.JWT_SECRET;
-        if (!key) throw new Error("Dotenv file busted");
-        const token = jwt.sign({ userID: user.id, role: user.role }, key);
-        res.cookie("authToken", token, {
-          httpOnly: true,
-          sameSite: "strict",
+        const SECRET_KEY = process.env.JWT_TOKEN;
+        if (!SECRET_KEY) {
+          throw new Error("Secret key is not defined.");
+        }
+        const token = jwt.sign(
+          { userID: user.id, role: user.role },
+          SECRET_KEY
+        );
+        res.cookie("jwt", token, {
+          httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
+          secure: false, // Set to true if using HTTPS
+          sameSite: "None", // Adjust based on your needs
         });
-        
+
         return true;
       } catch (error) {
         console.error("Error during login:", error);
@@ -113,9 +118,13 @@ const resolver = {
         username?: string;
         email?: string;
         password?: string;
-      }
+      },
+      { user }: { user: any }
     ) => {
       try {
+        cookieVerifier(user);
+        if (user.userID != userID) throw new Error("Unauthorized");
+
         if (!username && !email && !password) {
           throw new Error("No updates provided.");
         }

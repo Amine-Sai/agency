@@ -3,36 +3,48 @@ import rateLimit from "express-rate-limit";
 import { ApolloServer } from "apollo-server-express";
 import typeDefs from "./graphql/schema";
 import resolvers from "./graphql/resolvers/index";
-import { PrismaClient } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
 import { authMiddleware } from "./middleware/authMiddleware";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import * as dotenv from "dotenv";
 dotenv.config();
 
-const prisma = new PrismaClient();
 const pubsub = new PubSub();
 const app = express();
 
-// Set up rate limiting
+app.get("/test-cookies", (req, res) => {
+  console.log("Cookies received:", req.cookies);
+  res.send(req.cookies);
+});
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later.",
 });
 
-// Apply the rate limiting middleware to all requests
+// Apply middleware to all requests
+app.use(cookieParser());
 app.use(limiter);
+app.use(
+  cors({
+    origin: "http://localhost:4000", // Replace with your frontend URL
+    credentials: true, // Allow credentials (cookies) to be sent
+  })
+);
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => {
+  context: async ({ req, res }) => {
+    console.log(req.cookies, "index");
+
     const auth = authMiddleware({ req });
     return {
-      prisma, // Attach the Prisma client to the context
       pubsub,
-      user: auth,
+      cookie: auth,
+      res,
     };
   },
 });
